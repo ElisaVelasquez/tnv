@@ -1,0 +1,316 @@
+
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>TnVisa</title>
+  </head>
+  <body>
+    <div class="chat-window">
+      <div class="chat-header" id="chat-header">
+        <h3>Answer the following Questions to learn if you qualify for a TN Visa:</h3>
+      </div>
+      <div class="chat-input">
+        <div id="questionContainer">
+          
+        </div>
+        <div id="optionsContainer">
+         
+        </div>
+      </div>
+      <form id="form" style="display: none;">
+        <h3>Type in the following information so we can send you your results:</h3>
+        <label for="name" class="input-label">First and last name:</label>
+        <input type="text" id="name" placeholder="" />
+        <label for="email" class="input-label">Email:</label>
+        <input type="text" id="email" placeholder="" />
+        <label for="phone" class="input-label">Phone Number:</label>
+        <input type="text" id="phone" placeholder="" />
+        <button id="send-btn">
+          <img src="./src/assets/get-results.svg" alt="Get Results" />
+        </button>
+      </form>
+      <div id="notqualify" style="display: none;"> 
+        <!-- This should be in another page, along with the qualified one-->
+        <h3>
+          With the information we received, it looks like you do not qualify for a TN Visa.
+        </h3>
+        <h3>
+          Book a call with our legal experts to learn about alternate visa options for you:
+        </h3>
+        <h4>
+          Pending: Calendly GUI/API
+        </h4>
+      </div>
+    </div>
+  </body>
+</html>
+
+<style>
+  body {
+    background-image: url('./src/assets/Background.svg');
+    background-repeat: no-repeat;
+    background-size: cover; 
+    font-family: 'IBMPlexMono-Regular', sans-serif;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    margin: 100px;
+  }
+
+  .chat-window {
+    width: 600px;
+    height: 700px;
+    background-image: url('./src/assets/Chat-window.svg');
+    background-repeat: no-repeat;
+    justify-content: center;
+    align-items: center;
+}
+
+.chat-header {
+    color: white;
+    padding: 10px;
+    text-align: center;
+}
+
+.input-label {
+    font-size: 14px;
+    color: white;
+    bottom: 5px;
+}
+
+.chat-input {
+  display: flex;
+  flex-direction: column; justify-content: center; align-items: center;
+    padding: 10px;
+    background: transparent;  
+    border-top: none;         
+    position: relative;
+}
+
+#form input  {
+    width: 100%;
+    padding: 8px;
+    border-radius: 5px;
+    border: none;  
+    background: transparent; /*No background */
+    color: white;
+    outline: none;           
+    z-index: 1;              
+}
+
+#form button {
+  border-radius: 5px;
+  width: 100px;
+  border: none;  
+  background: transparent;
+  outline:none;
+  cursor: pointer;
+  display: block;
+  margin: 0 auto;
+}
+
+#form{
+  margin-left: 50px;
+  justify-content: center; align-items: center;
+  color: white;
+}
+
+#notqualify{
+  margin-left: 50px;
+  justify-content: center; align-items: center;
+  color: white;
+}
+
+#questionContainer {
+    font-size: 16px;
+    font-weight: bold;
+    color: white;
+    margin-bottom: 10px;
+    
+}
+
+#optionsContainer {
+    display: flex;
+    color: white;
+    margin-left: 5px;
+}
+
+input[type="radio"]{
+  background: url('./src/assets/Option.svg') no-repeat center center;
+  background-size: contain;
+  cursor: pointer;
+}
+
+/*
+.chat-input button {
+    padding: 8px 15px;
+    color: white;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+}*/
+</style>
+
+
+<script>
+
+  let currentQuestionIndex = 0;
+let responses = [];
+
+const questions = [
+  {
+    question: "1- What is your citizenship?",
+    options: ["Mexican", "Canadian"]
+  },
+  {
+    question: "2- Do you have a diploma or degree?",
+    options: ["Yes", "No"]
+  },
+  {
+    question: "3- Do you have a criminal history such as being convicted of any felonies?",
+    options: ["Yes", "No"]
+  },
+  {
+    question: "4- Do you have any education or work experience that qualifies under NAFTA occupations?",
+    options: ["Yes", "No"]
+  },
+  {
+    question: "5- Do you currently have any job offers in the USA or will you have any in the future?",
+    options: ["Yes", "No"]
+  },
+  {
+    question: "6- Does the job offer also align with NAFTA occupations?",
+    options: ["Yes", "No"],
+    comboBoxOptions: [ //Pending
+      "Lawyer",
+      "Actuary",
+      "Disaster Insurance Claims Adjuster",
+      "Computer Systems Analyst",
+      "Architect",
+      "Management Consultant",
+      "Dentist",
+      "Dietitian",
+      "Interior Designer",
+      "Graphic Designer",
+      "Industrial Designer",
+      "Nurse",
+      "Technical Writer",
+      "Pharmacist",
+      "Hotel Manager",
+      "Forest Ranger",
+      "Engineer",
+      "Medical Doctor",
+      "Psychologist",
+      "Medical Laboratory Technologist",
+      "Physical Therapist",
+      "Occupational Therapist",
+      "Surveyor",
+      "Veterinarian"
+    ]
+  },
+  {
+    question: "7- Are you currently outside of the US?",
+    options: ["Yes", "No"]
+  },
+  {
+    question: "8- Are you planning to apply inside or outside of the US?",
+    options: ["Inside", "Outside"]
+  }
+];
+
+function showQuestion() {
+  const questionLabelContainer = document.getElementById("questionContainer");
+  const optionsContainer = document.getElementById("optionsContainer");
+
+  
+  optionsContainer.innerHTML = "";
+  questionLabelContainer.innerHTML = "";
+
+  const question = questions[currentQuestionIndex];
+
+  // Shows current question
+  questionLabelContainer.textContent = question.question;
+
+  // Create the options
+  question.options.forEach((option, index) => {
+    const label = document.createElement("label");
+    label.textContent = option;
+
+    const input = document.createElement("input");
+    input.type = "radio";
+    input.name = "response";
+    input.value = option;
+    input.id = `option${currentQuestionIndex}_${index}`;
+
+   
+    input.addEventListener("change", handleResponse);
+
+    label.appendChild(input);
+    optionsContainer.appendChild(label);
+  });
+}
+
+function handleResponse() {
+  const selectedOption = document.querySelector('input[name="response"]:checked');
+
+  if (!selectedOption) {
+    return; // Prevents proceeding without selecting an option
+  }
+
+
+  /* PENDING, it may be 4 instead of 5
+  if (currentQuestionIndex==5 && selectedOption === "Yes") {
+    showComboBox(question.comboBoxOptions);
+    return; // Wait for user to select from combo box
+  }
+
+  */
+
+  const response = selectedOption.value;
+  responses.push(response);
+
+  // Move to the next question
+  currentQuestionIndex++;
+
+  if (currentQuestionIndex < questions.length) {
+    showQuestion();
+  } else {
+    // Once questions are completed, shows the form
+    document.getElementById("form").style.display = "block";
+    //hides everything else
+    document.getElementById("questionContainer").style.display = "none";
+    document.getElementById("optionsContainer").style.display = "none";
+    document.getElementById("chat-header").style.display = "none";
+  }
+}
+
+//pending
+function showComboBox(options) {
+  
+}
+
+//Handles the form submission
+document.getElementById("form").addEventListener("submit", function(event) {
+  
+  event.preventDefault(); 
+  
+  const name = document.getElementById("name").value;
+  const email = document.getElementById("email").value;
+  const phone = document.getElementById("phone").value;
+
+  
+  if (!name || !email || !phone )  {
+    alert('Fill in all required fields.');
+    return;  
+  }
+  
+  document.getElementById("form").reset(); 
+  document.getElementById("form").style.display = "none"; 
+  document.getElementById("notqualify").style.display = "block"; 
+});
+
+//Initialize the first question
+showQuestion();
+</script>
